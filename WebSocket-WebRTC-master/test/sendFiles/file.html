@@ -1,0 +1,56 @@
+<html>
+<head>
+    <title>WebRTC PeerConnection</title>
+    <style>
+        .preview{
+            display: flex;
+        }
+        .remote{
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <div>
+        <button id="connserver">Connect Sig Server</button>
+        <button id="leave" disabled>Leave</button>
+    </div>
+    <div class="preview">
+        <div>
+            <h2>Local:</h2>
+            <video id="localvideo" autoplay playsinline></video>
+        </div>
+        <div class="remote">
+            <h2>Remote:</h2>
+            <video id="remotevideo" autoplay playsinline></video>
+        </div>
+    </div>
+    <div >
+        <form id="fileInfo">
+            <input type="file" id="fileInput" name="files" disabled />
+        </form>
+        <button disabled id="sendFile">Send</button>
+        <button disabled id="abortButton">Abort</button>
+    </div>
+
+    <div class="progress">
+        <div class="label">Send progress: </div>
+        <progress id="sendProgress" max="0" value="0"></progress>
+    </div>
+
+    <div class="progress">
+        <div class="label">Receive progress: </div>
+        <progress id="receiveProgress" max="0" value="0"></progress>
+    </div>
+
+    <div id="bitrate"></div>
+    <a id="download"></a>
+    <span id="status"></span>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script src="./js/client.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,152 @@
+<!--https://blog.csdn.net/wang_jun8072/article/details/102724459-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>index2</title>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.0.js"></script>
+</head>
+<body>
+<h1>WebSocket测试</h1>
+<input name="name"> <button onclick="sendName()">发送name</button>
+<input type="file" class="form-control" id="files" name="file" >
+<button onclick="ff()">验证</button>
+<form id="uploadForm" enctype="multipart/form-data">
+    <input id="file" type="file" name="file"/>
+
+</form>
+    <button id="upload" type="button" onclick="doUpload()">upload</button>
+
+
+<script>
+    function doUpload() {
+        var formData = new FormData();
+        formData.append('file', $('#file')[0].files[0]);
+        formData.append('name','name');
+        console.log(formData);
+        console.log("formData:",formData.get('file'));
+        console.log("JSON:",JSON.stringify({
+            'file':formData.get('file')
+        }));
+    }
+    function getForm(){
+        console.log("form.serialize:",$('f').serialize());
+    }
+    var start= 0;
+    var end=1024;
+    var big = 1024;
+    var blobSize = 0;
+    var file;
+    var aaa = document.getElementById('aaa');
+    var bstr =[];
+    var name;
+   function ff(){
+        file = document.getElementById('files').files[0];
+        console.log("file.size:",file.size);
+        name = file.name;
+        console.log(file);
+       // test(reader,file);
+       tt();
+
+    }
+
+    function tt(){
+        var p = new Promise(function (resolve,reject){
+            let reader = new FileReader();
+            reader.readAsDataURL(file.slice(start,end));
+            reader.onload = function (e){
+                resolve(e.target.result);
+            }
+        });
+        p.then(function (res){
+            var JData = JSON.stringify({
+                type:file,
+                data:res
+            })
+            console.log(JData);
+            var JData = JSON.parse(JData);
+            var data = JData.data;
+            var arr = data.split(',');
+            var mime = arr[0].match(/:(.*?);/)[1];
+            bstr += atob(arr[1]);
+            console.log(start,end);
+            start = end;
+            if (start<file.size){
+                console.log("resume");
+                end = Math.min(file.size,start+big);
+                tt();
+            }else {
+                console.log("end");
+                console.log("bstr:",bstr);
+                var n = bstr.length;
+                var u8arr = new Uint8Array(n);
+                while(n--){
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                var blob = new Blob([u8arr],{type:mime});
+                console.log(blob);
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = name;
+                link.textContent = name;
+                link.style.display = 'block';
+                aaa.append(link);
+            }
+        },function (error){
+            console.log(error);
+        });
+    }
+
+    function test(reader,file){
+        reader.onload = function (){
+            var a = reader.result;
+            console.log("a:",a.length);
+            var uint8_msg = new Uint8Array(a);
+            // 解码成字符串
+            var decodedString = String.fromCharCode.apply(null, uint8_msg);
+            console.log(decodedString);
+            var b = {
+                type: "file",
+                data: decodedString
+            };
+            console.log("b:",b);
+            var j = JSON.stringify(b);
+            var jj = JSON.parse(j);
+            var data = jj.data;
+            var b = new Blob([data]);
+            var f = new FileReader();
+            f.onload = function (e){
+                var u8 = new Uint8Array(e.target.result);
+                console.log("u8.length",u8.length);
+                blobSize += u8.length
+                if (end<file.size){
+                    start = end;
+                    end += big;
+                    test(reader,file);
+                }else {
+                    console.log(blobSize);
+                }
+            }
+            f.readAsArrayBuffer(b);
+
+        };
+        reader.readAsArrayBuffer(file.slice(start,end));
+    }
+
+    // var chatSocket;
+    // function webSocketInit(){
+    //     try{
+    //         chatSocket = new WebSocket('ws://localhost:2999');
+    //     }catch (error){
+    //         console.log('连接出错:'+error);
+    //     }
+    // }
+    // chatSocket.onmessage = function (evt){
+    //     var msg = JSON.parse
+    // }
+    // function sendName(){
+    //
+    // }
+</script>
+</body>
+</html>
