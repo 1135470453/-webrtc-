@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "driver-class-name",
+      "type": "java.lang.String",
+      "description": "Description for driver-class-name."
+  }
+] }

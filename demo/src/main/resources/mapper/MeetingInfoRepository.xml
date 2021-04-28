@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.repository.MeetingInfoRepository">
+    <select id="getByRoomID" resultType="com.example.demo.entity.MeetingInfo" parameterType="String">select * from meetingInfo where roomId = #{arg0};</select>
+    <insert id="insertMeetingInfo">insert into meetingInfo values (#{roomId},#{meetingDate},#{startTime},#{endTime});</insert>
+</mapper>

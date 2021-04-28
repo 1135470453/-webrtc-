@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>加入会议</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <form name="meetingForm" id="meetingForm" name="meetingForm" action="/meeting/reserveMeeting" method="post">
+        <div class="form-group">
+            <label for="roomId">房间号</label>
+            <input type="text" class="form-control" id="roomId" name="roomId" checked="checked">
+        </div>
+        <div class="form-group">
+            <label for="userName">用户名</label>
+            <input type="text" class="form-control" id="userName" name="userName" checked="checked">
+        </div>
+    </form>
+    <p id="tips" name="tips" style="color: red"></p>
+</div>
+</body>
+</html>

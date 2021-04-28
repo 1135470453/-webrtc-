@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>预约</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <form name="meetingForm" id="meetingForm" name="meetingForm" action="/meeting/reserveMeeting" method="post">
+            <div class="form-group">
+                <label for="meetingDate">会议日期</label>
+                <input type="date" class="form-control" id="meetingDate" name="meetingDate" checked="checked">
+            </div>
+            <div class="form-group">
+                <label for="startTime">开始时间</label>
+                <input type="time" class="form-control" id="startTime" name="startTime" checked="checked">
+            </div>
+            <div class="form-group">
+                <label for="endTime">结束时间</label>
+                <input type="time" class="form-control" id="endTime" name="endTime" checked="checked">
+            </div>
+        </form>
+        <p id="tips" name="tips" style="color: red"></p>
+    </div>
+</body>
+</html>
