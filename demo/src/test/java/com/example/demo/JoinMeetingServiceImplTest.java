@@ -2,7 +2,7 @@ package com.example.demo;
 
 import com.example.demo.entity.MeetingInfo;
 import com.example.demo.service.JoinMeetingService;
-import org.junit.Test;
+import com.example.demo.service.SendMessageService;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,9 +20,17 @@ public class JoinMeetingServiceImplTest {
     @Autowired
     private JoinMeetingService joinMeetingService;
 
+    @Autowired
+    private SendMessageService sendMessageService;
+
+    @Test
+    public void sendTest(){
+        sendMessageService.send("123");
+    }
+
     @Test
     public void joinTest(){
-        Map<String,String> map = joinMeetingService.join("084475","lalila");
+        Map<String,String> map = joinMeetingService.join("084475");
         System.out.println(map.get("statu"));
         System.out.println(map.get("data"));
     }

@@ -16,8 +16,8 @@ function reserveRoom(){
             var year = date_now.getFullYear();
             var month = date_now.getMonth()+1 < 10 ? "0"+(date_now.getMonth()+1) : (date_now.getMonth()+1);
             var day = date_now.getDate() < 10 ? "0"+date_now.getDate() : date_now.getDate();
-            var hour = date_now.getHours();
-            var minutes = date_now.getMinutes();
+            var hour = date_now.getHours() < 10 ? "0"+(date_now.getMonth()+1) : (date_now.getMonth()+1);
+            var minutes = date_now.getMinutes() < 10 ? "0"+(date_now.getMonth()+1) : (date_now.getMonth()+1);
             var d = year + "-" + month + "-" + day;
             var time = hour + ":" +minutes;
             console.log(meetingDate,startTime,endTime,d,time);
@@ -84,11 +84,10 @@ function joinMeeting() {
                 body.find('#tips').text("请输入房间号");
             }else if (userName == null || userName === ""){
                 body.find('#tips').text("请输入用户名");
-            }else{
+            } else{
                 body.find('#tips').text("");
                 var formData = new FormData;
                 formData.append("roomId",roomId);
-                formData.append("userName",userName);
                 $.ajax({
                     type: "post",
                     url: "/meeting/joinMeeting",
@@ -97,12 +96,15 @@ function joinMeeting() {
                     processData: false,
                     success: function (data) {
                         if (data.statu == "succeed"){
-                            alert(data.data);
+                            window.location.href="meeting.html?roomId="+roomId+"&userName="+userName;
                             layer.close(index);
                         }else {
-                            alert(data.data);
+                            if (data.data == "RoomId"){
+                                alert("该房间号不存在");
+                            }else if (data.data == "time"){
+                                alert("当前不在会议时间");
+                            }
                         }
-
                     },
                     error: function (e) {
                         console.log(e.status);
@@ -110,25 +112,6 @@ function joinMeeting() {
                     }
                 });
             }
-
         }
     });
-}
-var websocket;
-function link() {
-    var username = $('#username').val();
-    websocket = new WebSocket("ws://127.0.0.1:8080/meetingWebSocket/"+username);
-    websocket.onopen = function () {
-        console.log("onopen")
-    }
-    websocket.onmessage = function (event) {
-        console.log("onmessage:"+event.data);
-    }
-    websocket.onclose = function () {
-        console.log("onclose");
-    }
-}
-function send() {
-    var message = $('#message').val();
-    websocket.send(message);
 }

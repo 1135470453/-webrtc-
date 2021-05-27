@@ -11,4 +11,5 @@ public class MeetingWebSocketConfig {
     public ServerEndpointExporter serverEndpointExporter(){
         return new ServerEndpointExporter();
     }
+
 }

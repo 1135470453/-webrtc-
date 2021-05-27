@@ -16,7 +16,7 @@ public class JoinMeetingServiceImpl implements JoinMeetingService {
     private MeetingInfoRepository meetingInfoRepository;
 
     @Override
-    public Map<String, String> join(String roomId, String userName) {
+    public Map<String, String> join(String roomId) {
         Map<String,String> map = new HashMap<>();
         List<MeetingInfo> meetingInfos = meetingInfoRepository.getByRoomID(roomId);
         if (meetingInfos.size() == 0){
@@ -27,7 +27,7 @@ public class JoinMeetingServiceImpl implements JoinMeetingService {
             map.put("data","time");
         }else {
             map.put("statu","succeed");
-            map.put("data",joinRoom());
+            map.put("data",roomId);
         }
         return map;
     }
@@ -43,8 +43,4 @@ public class JoinMeetingServiceImpl implements JoinMeetingService {
                 && simpleDateFormat_time.format(date).compareTo(meetingInfo.getEndTime()) <= 0;
     }
 
-    public String joinRoom(){
-
-        return null;
-    }
 }
