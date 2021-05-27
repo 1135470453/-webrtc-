@@ -1,0 +1,107 @@
+问题总结
+1. 文件上传功能，可以上传的文件很小
+2. 视频功能出现问题后需要重启
+3. 摄像头不能控制开关，声音和画面
+
+
+
+3-17
+chrome访问服务器显示该网站不安全，怀疑是缺少ssl证书。但没有配置好ssl证书（ssl证书什么意思？配置在一个阿里云服务器上还是一个tomcat或者nodejs服务器上？）
+3-18
+网站不安全原因为缺少ssl证书，问题解决。
+websocket连接在有的电脑出现问题。两台电脑进入同一个视频房间，没有同时出现，无法相互发送消息。websocket连接时服务器端相关日志没有显示（可能没有连成功）
+3-22
+websocket连接问题解决，为连接地址错误
+出现文字聊天功能无法使用问题
+文字聊天功能解决，部分电脑连接出现失败问题
+3-23
+尝试解决文件传输问题
+文件传输代码完成，出现文件传输错误，可以传输字符串，但是不可以传输文件和ArrayBuffer
+3-24
+文件传输问题为该架构下不可以传输ArrayBuffer类型数据，如果修改，则需要修改整体架构，过于复杂，尝试使用websocket进行文件传输
+
+文件传输方案：
+(1)使用datachannel传输：
+1.1将文件转换为arrayBuffer格式传输：无法直接传输，可能是因为架构问题
+1.2将文件转换为arrayBuffer格式后，再次转换为base64格式传输
+(2)使用websocket传输
+文件不可以转换为jason格式数据，传输失败
+
+现阶段使用1.2方法进行文件传输，部分文件传输成功，现存在问题如下
+(1)txt文件中午出现乱码
+(2)字数较多的txt文件不可以传输
+(3)出现如下报错:Failed to execute 'atob' on 'Window': The string to be decoded is not correctly encoded
+
+看一下这篇文章https://blog.csdn.net/u013189824/article/details/104053452
+
+3-29
+写功能文档
+文件传输功能解决方式https://github.com/muaz-khan/WebRTC-Experiment(有例子可以查看)
+https://github.com/search?q=webRtc
+
+3-30
+尝试解决文件传输问题(以github案例为原型)
+
+4-7 -9 -12
+系统学习node.js
+
+问题
+1.node.js的事件循环问题(涉及进程，线程，多线程，并发-操作系统) https://www.cnblogs.com/onepixel/p/7143769.html
+回调->异步>i/o->事件循环->EventEmitter（解决）
+2.观察者模式，java多线程
+3.tcp udp socket 文件传输方式 https://blog.csdn.net/pashanhu6402/article/details/96428887
+java socket编程     socket可以传输的数据格式
+java socket各种数据传输方式 https://blog.csdn.net/hongmofang10/article/details/90721800
+node.js Buffer  https://blog.csdn.net/dongchongyang/article/details/79044082
+https://www.runoob.com/nodejs/nodejs-buffer.html
+Buffer Blob ArrayBuffer关系
+https://zhuanlan.zhihu.com/p/97768916
+Stream流  https://www.runoob.com/nodejs/nodejs-stream.html （解决）
+4.websocket html express框架，使用和原理
+5.tcp缓存 如果缓存足够大，可以一次性传输多个包，这就是TCP所谓的字节流传输，而udp是数据报传输，所以udp传输时即使缓存再大，一次也只是发送一条数据（解决）
+
+4-12
+尝试使用websocket来发送文件
+
+4-13
+尝试使用websocket来发送文件，但发送文件时遇到文件需要用json格式来发送。需要将文件转化为String格式，然后到达另一端后需要转化为ArrayBuffer格式。尝试内容为index2.html.
+
+4-14
+使用websocket发送文件.文件blob->base64->JSON发送，接收方反向接收
+但是出现文件内容错误问题。
+尝试学习form表单数据传输方式。
+
+4-15
+研究form表单传输数据方式
+学习springboot，修改为springboot服务器
+开发预约会议功能
+数据库密码：123456
+
+5-6
+Spring boot使用WebSocket是无法通过@Autowired注入bean问题解决(查一下这个问题)
+可以用session或者application来解决变量RoomsMap问题
+componentscane负责扫描bean
+
+5-12
+尝试解决文件传输问题
+解决了文件上传到服务器的问题
+还需要解决文件依靠websocket传到各个客户端
+该问题解决
+文件传输大小有问题(问题保留，不再解决)
+解决文件下载问题
+
+5-13
+文件下载问题解决
+之后需要解决视频白板问题
+
+5-17
+明白如何获取共享的屏幕
+视频流切换的时候出现问题，需要删除掉原来的video标签，然后添加上新的video标签，然后将新的流加到这个标签上面
+
+5-19
+解决摄像头切换为屏幕共享问题
+之后需要解决将视频流传输出去的问题
+
+5-27
+解决屏幕共享问题，但video的顺序存在问题，而且video下面的用户名位置有问题
+还需要解决取消屏幕共享之后切换回摄像头
