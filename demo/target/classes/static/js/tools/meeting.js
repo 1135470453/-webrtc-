@@ -13,14 +13,22 @@ var videoBox = document.getElementById('videoBox');
 var localVideo = document.getElementById('localVideo');
 // 文本消息盒子
 var textBox = document.getElementById('textBox');
-// 提交文本消息按钮
+// 文本
 var textMsg = document.getElementById('textMsg');
 // 本地流
 var localStream = null;
+// 用于存储screenshot流
+var screenshootStream = null;
 // 存储用户对象
 var peerList = {};
-//数据传输DataChannel
-var dataChannels = {};
+//文件
+var fileBox;
+//屏幕共享参数
+var screenConstraints = {
+    video: true
+};
+//开启的video数量
+var videoNum = 0;
 
 
 //初始化websocket
@@ -47,7 +55,7 @@ async function websocketInit() {
             case "joined":
                 console.log("websocket.joined");
                 console.log(msg.userList,msg.userId)
-                userJoined(msg.userList, msg.userId);
+                userJoined(msg.userList, msg.userId,msg.userName);
                 var p = document.createElement('p');
                 p.innerText = msg.userName+' 加入了房间';
                 p.className = 'p-hint';
@@ -81,6 +89,24 @@ async function websocketInit() {
                     textBox.append(p);
                 }
                 break;
+            case "message": //有人发来消息
+                var p = document.createElement('p');
+                p.innerText = msg.data;
+                textBox.append(p);
+                break;
+            case "file":
+                var p = document.createElement('p');
+                p.innerText = msg.userName+':';
+                textBox.append(p);
+                var a = document.createElement('a');
+                var fileName = msg.fileName;
+                var arr = fileName.split("_");
+                a.textContent = arr[arr.length-1];
+                a.onclick = function (){
+                  downloadFile(fileName);
+                };
+                textBox.append(a);
+                break;
             default:
                 console.log("未知的信息收到了:");
                 console.log(msg);
@@ -103,7 +129,7 @@ async function websocketInit() {
 // 监听用户加入
 /*让每一个用户都与自己进行getPeerConnection*/
 /*data:userLIst,account:username*/
-function userJoined(data, account) {
+function userJoined(data, account, username) {
     // 当大于一个与用户时(房间中不只有自己一个用户的时候)
     if (data.length> 1) {
         /*forEach调用数组的每一个元素,把元素传递给回调函数*/
@@ -113,7 +139,7 @@ function userJoined(data, account) {
             /*sort排序,join用—间隔,然后放入一个字符串:为了保证与每一个用户都有连接，但是不会重复连接*/
             obj.account = arr.sort().join('-');
             if (!peerList[obj.account] && v !== userId) {
-                getPeerConnection(obj);
+                getPeerConnection(obj,userName);
             }
             // 当加入的人是自己则向房间其它人发offer
             if (account === userId) {
@@ -145,18 +171,21 @@ webrtc及其相关函数
 async function getUserMedia() {
     console.log("尝试获取用户摄像头权限");
     try {
-        localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
-        localVideo.srcObject = localStream;
-        sendMessage({
-            userName: userName,
-            type: 'join'
+        navigator.mediaDevices.getUserMedia((mediaConstraints)).then(stream => {
+            localStream = stream;
+            localVideo.srcObject = stream;
+            sendMessage({
+                userName: userName,
+                type: 'join'
+            });
         });
+        // localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
     } catch (error) {
         console.log('获取本地摄像头失败：'+error);
     }
 }
 // 创建 RTCPeerConnection
-function getPeerConnection(v) {
+function getPeerConnection(v,userName) {
     let iceServer = {
         "iceServers": [
             {
@@ -173,8 +202,18 @@ function getPeerConnection(v) {
     var hasAddTrack = (peer.addTrack !== undefined);
     // 如果检测到媒体流连接到本地，将其绑定到一个video标签上输出
     if (hasAddTrack) {
+        console.log("ontrack");
         peer.ontrack = (event) => {
-            let videos = document.querySelector('#' + v.account);
+            var video_name = document.createElement("div");
+            video_name.className = "col_md_4";
+            var video_l = document.createElement("div");
+            video_l.className = "row";
+            var name_l = document.createElement("div");
+            name_l.className = "row";
+            var name = document.createElement("p");
+            name.innerText = userName;
+            name_l.append(name);
+            let videos = document.querySelector('#v' + v.account);
             if (videos) {
                 videos.srcObject = event.streams[0];
             } else {
@@ -182,14 +221,18 @@ function getPeerConnection(v) {
                 video.controls = true;
                 video.autoplay = 'autoplay';
                 video.srcObject = event.streams[0];
-                video.id = v.account;
+                video.id = "v"+v.account;
                 video.className = 'col-md-4';
-                videoBox.append(video);
+                video_l.append(video);
+                video_name.append(video_l);
+                video_name.append(name_l);
+                videoBox.append(video_name);
             }
         }
     } else {
+        console.log("onaddstream");
         peer.onaddstream = (event) => {
-            let videos = document.querySelector('#' + v.account);
+            let videos = document.querySelector('#v' + v.account);
             if (videos) {
                 videos.srcObject = event.stream;
             } else {
@@ -197,7 +240,7 @@ function getPeerConnection(v) {
                 video.controls = true;
                 video.autoplay = 'autoplay';
                 video.srcObject = event.stream;
-                video.id = v.account;
+                video.id = "v"+v.account;
                 video.className = 'col-md-4';
                 videoBox.append(video);
             }
@@ -213,158 +256,7 @@ function getPeerConnection(v) {
             });
         }
     };
-
-    // peer.ondatachannel = (event) =>{
-    //     var receiveChannel = event.channel;
-    //     console.log("datachannel is created!");
-    //     receiveChannel.onmessage = (event) =>{
-    //         console.log("ondatachannel:",event.data);
-    //     }
-    // }
-    openDataChannel(peer,v);
     peerList[v.account] = peer;
-}
-function openDataChannel(peer,v) {
-    var dataChannelOptions = {
-        reliable: true,
-        ordered: true
-    };
-    dataChannel = peer.createDataChannel("myLabel",dataChannelOptions);
-    dataChannel.onerror = function (error) {
-        console.log("DataChannel Error: ",error);
-    };
-    dataChannel.onmessage = function (event) {
-        console.log(event.data);
-        try{
-            console.log("datachannel传来信息");
-            var message = JSON.parse(event.data);
-            console.log("信息为:",message);
-            switch (message.type){
-                case "start":
-                    console.log("接收到其他用户的文件");
-                    currentFile = [];
-                    // 文件格式(file.type)
-                    currentFileMeta = message.data;
-                    currentFileName = message.name;
-                    console.log("Receiving file",currentFileMeta);
-                    break;
-                case "end":
-                    console.log("接收完毕");
-                    saveFile(currentFileMeta,currentFile);
-                    break;
-                case "message":
-                    var p = document.createElement('p');
-                    p.innerText = message.data;
-                    textBox.append(p);
-                    break;
-                default:
-                    console.log("dataChannel传来其他信息:",message);
-                    break;
-            }
-        }catch (e){
-            console.log("error:",e);
-            var blob = event.data;
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = fileName;
-            link.textContent = fileName;
-            link.style.display = 'block';
-            textBox.append(link);
-            console.log("正在接收其他用户的文件");
-            // currentFile.push(event.data);
-        }
-        // try{
-        //   var message = JSON.parse(event.data);
-        //   switch (message.type) {
-        //     case "start":
-        //       console.log("接收到其他用户的文件");
-        //       currentFile = [];
-        //  文件格式(file.type)
-        //       currentFileMeta = message.data;
-        //       console.log("Receiving file",currentFileMeta);
-        //       break;
-        //     case "end":
-        //       console.log("接收完毕");
-        //       saveFile(currentFileMeta,currentFile);
-        //       break;
-        //   }
-        // }catch (e) {
-        //   console.log(e);
-        //   console.log("正在接收其他用户的文件");
-        //   currentFile.push(event.data);
-        // }
-        /*var data = event.data;
-        if (data instanceof Blob){
-            console.log("接收到Blob类型数据");
-            // try{
-            //     incomingFileInfo = JSON.parse(event.data);
-            //     switch (incomingFileInfo.type) {
-            //         case "start":
-            //             console.log("接收到其他用户的文件",incomingFileInfo.fileName);
-            //             incomingFileData = [];
-            //             bytesReceived = 0;
-            //             downloadInprogress = true;
-            //             break;
-            //     }
-            // }catch (e) {
-                bytesReceived += data.length;
-                incomingFileData.push(data);
-                if (bytesReceived === incomingFileInfo.fileSize){
-                    var blob = new Blob(incomingFileData);
-                    incomingFileData = [];
-                    var link = document.createElement('a');
-                    /!*window.URL.createObjectURL()把blob转化为下载的链接*!/
-                    link.href = URL.createObjectURL(blob);
-                    link.download = incomingFileInfo.fileName;
-                    link.textContent = incomingFileInfo.fileName;
-                    link.style.display = 'block';
-                    textBox.append(link);
-                }
-            // }
-        }else if (data instanceof ArrayBuffer){
-            console.log("接收到ArrayBuffer类型数据");
-            // try{
-            //     incomingFileInfo = JSON.parse(event.data);
-            //     switch (incomingFileInfo.type) {
-            //         case "start":
-            //             console.log("接收到其他用户的文件",incomingFileInfo.fileName);
-            //             incomingFileData = [];
-            //             bytesReceived = 0;
-            //             downloadInprogress = true;
-            //             break;
-            //     }
-            // }catch (e) {
-            bytesReceived += data.length;
-            incomingFileData.push(data);
-            if (bytesReceived === incomingFileInfo.fileSize){
-                var blob = new Blob(incomingFileData);
-                incomingFileData = [];
-                var link = document.createElement('a');
-                /!*window.URL.createObjectURL()把blob转化为下载的链接*!/
-                link.href = URL.createObjectURL(blob);
-                link.download = incomingFileInfo.fileName;
-                link.textContent = incomingFileInfo.fileName;
-                link.style.display = 'block';
-                textBox.append(link);
-            }
-        }else{
-            console.log("接收到String类型变量");
-            var p = document.createElement('p');
-            p.innerText = data;
-            textBox.append(p);
-        }
-*/
-        /*var p = document.createElement('p');
-        p.innerText = event.data;
-        textBox.append(p);*/
-    };
-    dataChannel.onopen = function () {
-
-    };
-    dataChannel.onclose = function () {
-        console.log("DataChannel is closed");
-    };
-    dataChannels[v.account] = dataChannel;
 }
 // createOffer
 function createOffer(account, peer) {
@@ -397,6 +289,81 @@ function handleVideoOfferMsg(v) {
         });
     }, () => {});
 }
+
+/*
+* 功能函数
+* */
+
+// 点击按钮发送文字消息
+function sendTextMsg(){
+    if(textMsg.value){
+        var message = userName+': '+textMsg.value;
+        sendMessage({
+            type:"message",
+            data:message
+        });
+        textMsg.value = '';
+    }
+}
+//点击按钮发送文件
+function sendFile(){
+    fileBox = $('#file')[0].files[0];
+    if (fileBox === null){
+        alert("请选择需要上传的文件");
+        return false;
+    }else {
+        var formData = new FormData();
+        formData.append("file",fileBox);
+        formData.append("userName",userName);
+        formData.append("roomId",roomId);
+        $.ajax({
+            type : "post",
+            url : "/meeting/upload",
+            data : formData,
+            processData : false,
+            contentType : false,
+            success : function(data){
+                if (data.end=="error") {
+                    alert("文件提交失败!");
+                }else{
+                    alert("文件上传成功!");
+                }}
+        });
+    }
+}
+//点击a标签下载文件
+function downloadFile(fileName){
+    window.open("/meeting/download?fileName="+fileName);
+}
+
+//共享屏幕
+function shareScreen(){
+    localVideo.remove();
+    navigator.mediaDevices.getDisplayMedia(screenConstraints).then(stream => {
+        console.log("开始获取用户摄像头");
+        var screenStream = stream;
+        var screenVideo = document.createElement("video");
+        screenVideo.className = "col-md-4";
+        screenVideo.id = "localVideo";
+        screenVideo.autoplay = 'autoplay';
+        screenVideo.controls = true;
+        screenVideo.srcObject = screenStream;
+        videoBox.appendChild(screenVideo);
+        localVideo = screenVideo;
+        screenshootStream = stream;
+        console.log("获取屏幕成功");
+    }).then(function (){
+            for (let k in peerList) {
+                peerList[k].removeStream(localStream)
+                peerList[k].addStream(screenshootStream);
+                createOffer(k,peerList[k]);
+            }
+        }
+    );
+
+}
+
+
 /*
 其他工具类
 */

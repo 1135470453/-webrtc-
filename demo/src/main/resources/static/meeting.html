@@ -62,15 +62,19 @@
                     <!--文本消息盒子-->
                     <div id="textBox" class="panel-body">
                     </div>
+                    <div class="row">
+                        <div id="screen_box">
+                            <button id="screen_btn" onclick="shareScreen()">共享屏幕</button>
+                        </div>
+                    </div>
                     <div class="panel-bottom">
                         <div class="input-group">
                             <!--文件发送盒子-->
                             <form id="fileForm" name="fileForm">
-                                <input type="file" class="form-control" id="files" name="file">
+                                <input type="file" class="form-control" id="file" name="file">
                             </form>
                             <span class="input-group-btn">
-                  <button class="btn btn-default" onclick="sendFileButton()" type="button">发送文件</button>
-                                <!--                  <button class="btn btn-default" onclick="sendFiles2()" type="button">发送文件</button>-->
+                  <button class="btn btn-default" onclick="sendFile()" type="button">发送文件</button>
                 </span>
                         </div>
                     </div>
@@ -79,7 +83,7 @@
                             <!--文本消息盒子-->
                             <input type="text" class="form-control" placeholder="输入消息..." id="textMsg">
                             <span class="input-group-btn">
-                                <button class="btn btn-default" onclick="send()" type="button">发送</button>
+                                <button class="btn btn-default" onclick="sendTextMsg()" type="button">发送</button>
                             </span>
                         </div>
                     </div>

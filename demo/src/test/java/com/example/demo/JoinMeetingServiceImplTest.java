@@ -2,7 +2,7 @@ package com.example.demo;
 
 import com.example.demo.entity.MeetingInfo;
 import com.example.demo.service.JoinMeetingService;
-import com.example.demo.service.SendMessageService;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,18 +15,24 @@ import java.util.Map;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = DemoApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class JoinMeetingServiceImplTest {
+public class JoinMeetingServiceImplTest implements JoinMeetingService{
 
-    @Autowired
-    private JoinMeetingService joinMeetingService;
+////    @Autowired
+//    private JoinMeetingServiceImpl joinMeetingService ;
+//
+////    @Autowired
+//    private SendMessageServiceImpl sendMessageService;
 
-    @Autowired
-    private SendMessageService sendMessageService;
 
-    @Test
-    public void sendTest(){
-        sendMessageService.send("123");
-    }
+
+
+        @Autowired
+    private JoinMeetingService joinMeetingService ;
+
+
+
+
+
 
     @Test
     public void joinTest(){
@@ -55,5 +61,15 @@ public class JoinMeetingServiceImplTest {
             System.out.println("不在会议时间");
         }
 
+    }
+
+    @Override
+    public Map<String, String> join(String roomId) {
+        return null;
+    }
+
+    @Override
+    public boolean checkTime(MeetingInfo meetingInfo) {
+        return false;
     }
 }

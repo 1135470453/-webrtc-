@@ -2,7 +2,7 @@ package com.example.demo.tool;
 
 import com.alibaba.fastjson.JSON;
 import com.example.demo.pojo.RoomsMaps;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.OnClose;
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/*1.尝试连接 2.完成项目*/
+/*2.完成项目*/
 /*https://www.jianshu.com/p/d79bf8174196
 * https://www.jianshu.com/p/3398d0230e5f
 * https://www.jianshu.com/p/ac197bca9aed
@@ -24,10 +24,17 @@ import java.util.Map;
 @Component
 public class MeetingWebSocket {
 
+    //此处是解决无法注入的关键
+    private static ApplicationContext applicationContext;
+    //你要注入的service或者dao
+    private static RoomsMaps roomsMaps;
+    public static void setApplicationContext(ApplicationContext applicationContext) {
+        MeetingWebSocket.applicationContext = applicationContext;
+        roomsMaps = applicationContext.getBean(RoomsMaps.class);
+    }
 
-    /*房间信息记录*/
-    @Autowired
-    private RoomsMaps roomsMaps;
+
+
     private static int onlineCount = 0;
     private Session session;
     private String roomId;
@@ -36,6 +43,7 @@ public class MeetingWebSocket {
 
     @OnOpen
     public void onOpen(Session session)throws IOException{
+        System.out.println(roomsMaps);
         onlineCount++;
         System.out.println("一位用户加入,现在有"+onlineCount+"位用户");
     }

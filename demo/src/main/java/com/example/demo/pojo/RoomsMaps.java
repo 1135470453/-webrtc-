@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-@Component
+@Component("roomsMaps")
 public class RoomsMaps {
     /*
     *   结构:
@@ -23,7 +23,7 @@ public class RoomsMaps {
     *   }
     * }
     * */
-    private Map<String,Map<String, List>> roomsMap;
+    private Map<String,Map<String, List>> roomsMap = new HashMap<>();
 
     public List<String> getIdListByRoomId(String roomId){
         return roomsMap.get(roomId).get("idList");

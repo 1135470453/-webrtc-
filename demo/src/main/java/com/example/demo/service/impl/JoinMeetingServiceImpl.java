@@ -15,6 +15,8 @@ public class JoinMeetingServiceImpl implements JoinMeetingService {
     @Autowired
     private MeetingInfoRepository meetingInfoRepository;
 
+
+
     @Override
     public Map<String, String> join(String roomId) {
         Map<String,String> map = new HashMap<>();
