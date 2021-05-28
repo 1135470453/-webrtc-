@@ -9,13 +9,15 @@ var chatSocket;
 var mediaConstraints = {"audio": true,"video": true};
 // 视频盒子,video标签外面的div标签
 var videoBox = document.getElementById('videoBox');
+// 个人userName标签
+var localUserName = document.getElementById('local_name');
 // 本地视频对象,video标签
 var localVideo = document.getElementById('localVideo');
 // 文本消息盒子
 var textBox = document.getElementById('textBox');
 // 文本
 var textMsg = document.getElementById('textMsg');
-// 本地流
+// 本地摄像头流
 var localStream = null;
 // 用于存储screenshot流
 var screenshootStream = null;
@@ -27,8 +29,8 @@ var fileBox;
 var screenConstraints = {
     video: true
 };
-//开启的video数量
-var videoNum = 0;
+//记录加入的其他用户的数量
+var userNum = 0;
 
 
 //初始化websocket
@@ -129,7 +131,7 @@ async function websocketInit() {
 // 监听用户加入
 /*让每一个用户都与自己进行getPeerConnection*/
 /*data:userLIst,account:username*/
-function userJoined(data, account, username) {
+function userJoined(data, account, un) {
     // 当大于一个与用户时(房间中不只有自己一个用户的时候)
     if (data.length> 1) {
         /*forEach调用数组的每一个元素,把元素传递给回调函数*/
@@ -139,7 +141,7 @@ function userJoined(data, account, username) {
             /*sort排序,join用—间隔,然后放入一个字符串:为了保证与每一个用户都有连接，但是不会重复连接*/
             obj.account = arr.sort().join('-');
             if (!peerList[obj.account] && v !== userId) {
-                getPeerConnection(obj,userName);
+                getPeerConnection(obj,un);
             }
             // 当加入的人是自己则向房间其它人发offer
             if (account === userId) {
@@ -174,6 +176,7 @@ async function getUserMedia() {
         navigator.mediaDevices.getUserMedia((mediaConstraints)).then(stream => {
             localStream = stream;
             localVideo.srcObject = stream;
+            localUserName.innerText = userName;
             sendMessage({
                 userName: userName,
                 type: 'join'
@@ -185,7 +188,7 @@ async function getUserMedia() {
     }
 }
 // 创建 RTCPeerConnection
-function getPeerConnection(v,userName) {
+function getPeerConnection(v,un) {
     let iceServer = {
         "iceServers": [
             {
@@ -196,6 +199,8 @@ function getPeerConnection(v,userName) {
     };
     // 创建
     var peer = new RTCPeerConnection(iceServer,{optional: [{RtpDataChannels: true}]});
+    //加入的用户数加一
+    userNum++;
     //向 RTCPeerConnection 中加入需要发送的流
     peer.addStream(localStream);
     // 判断使用哪个方法监听流
@@ -204,29 +209,24 @@ function getPeerConnection(v,userName) {
     if (hasAddTrack) {
         console.log("ontrack");
         peer.ontrack = (event) => {
-            var video_name = document.createElement("div");
-            video_name.className = "col_md_4";
-            var video_l = document.createElement("div");
-            video_l.className = "row";
-            var name_l = document.createElement("div");
-            name_l.className = "row";
-            var name = document.createElement("p");
-            name.innerText = userName;
-            name_l.append(name);
+            var user_videoBox = document.getElementById('user_'+userNum+'_video_box');
+            var user_videoName = document.getElementById('user_'+userNum+'_name');
             let videos = document.querySelector('#v' + v.account);
             if (videos) {
                 videos.srcObject = event.streams[0];
             } else {
+                let user_videoBox_2 = document.createElement('div');
+                user_videoBox_2.className = 'row';
+                user_videoBox_2.id = "v"+v.account+"_box";
+                user_videoBox.append(user_videoBox_2);
                 let video = document.createElement('video');
                 video.controls = true;
                 video.autoplay = 'autoplay';
                 video.srcObject = event.streams[0];
                 video.id = "v"+v.account;
-                video.className = 'col-md-4';
-                video_l.append(video);
-                video_name.append(video_l);
-                video_name.append(name_l);
-                videoBox.append(video_name);
+                video.className = 'col-md-12';
+                user_videoBox_2.append(video);
+                user_videoName.innerText = un;
             }
         }
     } else {
